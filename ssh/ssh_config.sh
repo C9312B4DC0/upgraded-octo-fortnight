@@ -61,4 +61,14 @@ set_packagemanager #---> Determine and set package manager
 
 echo "Updating system packages before installing apps..."
 pkg_update #---> Update system
+echo "System packages updated..."
 
+echo "Installing python3-pip..."
+#---> Install PIP
+#---> Import keys as non root user!
+#---> Backup ssh config
+#---> Configure SSH security
+#---> Restart sshd
+#---> Install Fail2Ban and enable service
+#---> Configure Fail2Ban
+#---> Test access
