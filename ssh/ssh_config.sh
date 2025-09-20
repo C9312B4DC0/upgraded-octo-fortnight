@@ -47,4 +47,5 @@ function set_packagemanager() {
 	fi
 }
 
+set_packagemanager
 pkg_update
