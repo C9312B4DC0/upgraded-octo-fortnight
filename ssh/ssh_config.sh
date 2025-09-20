@@ -1,11 +1,21 @@
-# Create top of script
-# Determine OS, set flag
-# Install python, import app, import GitHub keys
-# Configure sshd config
+#!/bin/bash
 
 
-## Some test code...
-echo "Hello world!"
+
+
+
+#######################################
+# Variables ###########################
+#######################################
+
+#---> Text colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
 
 # Credits
 
@@ -19,35 +29,35 @@ echo "Hello world!"
 #---> Determine package manager for install
 function set_packagemanager() {
     if command -v apt &> /dev/null; then
-		echo "Package manager is apt."
+		echo -e "${GREEN}Package manager is apt."
         pkg_install() { sudo apt install -y "$@"; }
         pkg_update()  { sudo apt update -y; }
         pkg_remove()  { sudo apt remove -y "$@"; }
         pkg_search()  { apt search "$@"; }
 
     elif command -v dnf &> /dev/null; then
-		echo "Package manager is dnf."
+		echo "${GREEN}Package manager is dnf."
         pkg_install() { sudo dnf install -y "$@"; }
         pkg_update()  { sudo dnf update -y; }
         pkg_remove()  { sudo dnf remove -y "$@"; }
         pkg_search()  { dnf search "$@"; }
 
 	elif command -v yum &> /dev/null; then
-		echo "Package manager is yum."
+		echo "${GREEN}Package manager is yum."
         pkg_install() { sudo yum -y install "$@"; }
         pkg_update()  { sudo yum -y update; }
         pkg_remove()  { sudo yum -y remove "$@"; }
         pkg_search()  { yum info "$@"; }
 
     elif command -v pacman &> /dev/null; then
-		echo "Package manager is pacman."
+		echo "${GREEN}Package manager is pacman."
         pkg_install() { sudo pacman -S --noconfirm "$@"; }
         pkg_update()  { sudo pacman -Sy; }
         pkg_remove()  { sudo pacman -R --noconfirm "$@"; }
         pkg_search()  { pacman -Ss "$@"; }
 
 	else
-		echo "No supported package manager found!" >&2 # stderr out (learned something new!)
+		echo "${RED}No supported package manager found! Exiting script!" >&2 # stderr out (learned something new!)
 		return 1
 	fi
 }
@@ -56,14 +66,14 @@ function set_packagemanager() {
 #######################################
 # Main Block ##########################
 #######################################
-echo "Determining package manager for OS..."
+echo "${YELLOW}Determining package manager for OS..."
 set_packagemanager #---> Determine and set package manager
 
-echo "Updating system packages before installing apps..."
+echo "${YELLOW}Updating system packages before installing apps..."
 pkg_update #---> Update system
-echo "System packages updated..."
+echo "${GREEN}System packages updated!"
 
-echo "Installing python3-pip..."
+echo "${YELLOW}Installing python3-pip..."
 #---> Install PIP
 #---> Import keys as non root user!
 #---> Backup ssh config
