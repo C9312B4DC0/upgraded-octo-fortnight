@@ -84,8 +84,15 @@ info "Updating system packages before installing apps..."
 pkg_update #---> Update system
 success "System packages updated!"
 
-info "Installing python3-pip..."
 #---> Install PIP
+info "Installing python3-pip..."
+if ! command -v pip &> /dev/null; then
+	info "Installing Python PIP..."
+	pkg_install python3-pip || fatal "Unable to install PIP, exiting..." #---> Fatal message function exits program... probably shouldn't do that...
+else
+	success "PIP already installed, moving on!"
+fi
+
 #---> Import keys as non root user!
 #---> Backup ssh config
 #---> Configure SSH security
