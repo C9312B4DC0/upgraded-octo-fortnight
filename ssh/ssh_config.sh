@@ -28,27 +28,12 @@ NC='\033[0m' # No Color
 # Functions ###########################
 #######################################
 #---> Colored message functions
-info() { echo -e "${BLUE}[INFO]${NC} $*" }
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $*"
-}
-
-warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $*" >&2
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $*" >&2
-}
-
-debug() {
-    [[ -n "${DEBUG:-}" ]] && echo -e "${PURPLE}[DEBUG]${NC} $*" >&2
-}
-
-fatal() {
-    echo -e "${RED}${BOLD}[FATAL]${NC} $*" >&2
-    exit 1
-}
+info() { echo -e "${BLUE}[INFO]${NC} $*"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
+warning() { echo -e "${YELLOW}[WARNING]${NC} $*" >&2; }
+error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+debug() { [[ -n "${DEBUG:-}" ]] && echo -e "${PURPLE}[DEBUG]${NC} $*" >&2; }
+fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} $*" >&2; exit 1; }
 
 
 #---> Determine package manager for install
