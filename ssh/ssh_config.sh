@@ -28,10 +28,7 @@ NC='\033[0m' # No Color
 # Functions ###########################
 #######################################
 #---> Colored message functions
-info() {
-    echo -e "${BLUE}[INFO]${NC} $*"
-}
-
+info() { echo -e "${BLUE}[INFO]${NC} $*" }
 success() {
     echo -e "${GREEN}[SUCCESS]${NC} $*"
 }
