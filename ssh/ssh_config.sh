@@ -136,14 +136,14 @@ sudo sed -i 's/^#*UseDNS.*/UseDNS no/' /etc/ssh/sshd_config #---> Disable DNS lo
 sudo sed -i 's/^#*Compression.*/Compression delayed/' /etc/ssh/sshd_config #---> Set compression
 sudo sed -i 's/^#*TCPKeepAlive.*/TCPKeepAlive yes/' /etc/ssh/sshd_config #---> Enable TCP keep alive
 
-# Add settings that might not exist (append if not found)
-sudo grep -q "^MaxStartups" /etc/ssh/sshd_config || sudo echo "MaxStartups 10:30:60" >> /etc/ssh/sshd_config
-sudo grep -q "^AuthenticationMethods" /etc/ssh/sshd_config || sudo echo "AuthenticationMethods publickey" >> /etc/ssh/sshd_config
-
+# Additional settings not normally in 
+#sudo grep -q "^MaxStartups" /etc/ssh/sshd_config || sudo echo "MaxStartups 10:30:60" >> /etc/ssh/sshd_config
+#sudo grep -q "^AuthenticationMethods" /etc/ssh/sshd_config || sudo echo "AuthenticationMethods publickey" >> /etc/ssh/sshd_config
+#
 # Add crypto settings (these are usually not in default config)
-sudo grep -q "^Ciphers" /etc/ssh/sshd_config || sudo echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr" >> /etc/ssh/sshd_config
-sudo grep -q "^MACs" /etc/ssh/sshd_config || sudo echo "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com" >> /etc/ssh/sshd_config
-sudo grep -q "^KexAlgorithms" /etc/ssh/sshd_config || sudo echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512" >> /etc/ssh/sshd_config
+#sudo grep -q "^Ciphers" /etc/ssh/sshd_config || sudo echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr" >> /etc/ssh/sshd_config
+#sudo grep -q "^MACs" /etc/ssh/sshd_config || sudo echo "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com" >> /etc/ssh/sshd_config
+#sudo grep -q "^KexAlgorithms" /etc/ssh/sshd_config || sudo echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512" >> /etc/ssh/sshd_config
 
 # Test configuration and restart if valid
 if sudo sshd -t; then
