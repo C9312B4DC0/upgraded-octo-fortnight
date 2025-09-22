@@ -157,6 +157,7 @@ else
         exit 1
     else
         fatal "Failed to resture sshd_config! Exiting script..."
+    fi
 fi
 
 
