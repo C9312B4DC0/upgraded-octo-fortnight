@@ -2,6 +2,7 @@
 
 <<comment
 Stuff to do:
+- acquire sudo at beginning of script
 - Add command line argument for GitHub username
 - Add comment block for script function
 - Add verbose flag for outputting all commands?
