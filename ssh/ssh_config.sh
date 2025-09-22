@@ -29,6 +29,7 @@ NC='\033[0m' # No Color
 #######################################
 #---> Colored message functions
 info() { echo -e "${BLUE}[INFO]${NC} $*"; }
+input() { echo -e "${CYAN}[INPUT]${NC} $*"; }
 success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
 warning() { echo -e "${YELLOW}[WARNING]${NC} $*" >&2; }
 error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
@@ -68,7 +69,7 @@ function set_packagemanager() {
 
 	else
 		fatal "No supported package manager found! Exiting script!"
-		return 1
+		exit 1
 	fi
 }
 
@@ -94,6 +95,12 @@ else
 fi
 
 #---> Import keys as non root user!
+info "Importing GitHub SSH keys..."
+read -p "Enter your GitHub username: " gh_username
+info "Entered GitHub username: ${gh_username}"
+
+
+
 #---> Backup ssh config
 #---> Configure SSH security
 #---> Restart sshd
