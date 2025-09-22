@@ -107,13 +107,61 @@ else
     fatal "Unable to pull keys from GitHub. Did you enter the correct username? Exiting script..."
 fi
 
+#---> Backup SSH config
+info "Backing up original SSHD config (/etc/ssh/sshd_config)"
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup || fatal "Failed to backup SSH config. Exiting script..."
+success "Successfully backed up sshd_config! Backup filename: sshd_config.backup"
 
-
-
-
-
-#---> Backup ssh config
 #---> Configure SSH security
+info "Modifying SSHD config..."
+sudo sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config #---> Disable root login
+sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config #---> Disable password authentication
+sudo sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config #---> Enable public key authentication
+sudo sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords no/' /etc/ssh/sshd_config #---> Disable empty passwords
+sudo sed -i 's/^#*ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config #---> Disable challenge-response authentication
+sudo sed -i 's/^#*KerberosAuthentication.*/KerberosAuthentication no/' /etc/ssh/sshd_config #---> Disable Kerberos authentication
+sudo sed -i 's/^#*GSSAPIAuthentication.*/GSSAPIAuthentication no/' /etc/ssh/sshd_config #---> Disable GSSAPI authentication
+sudo sed -i 's/^#*MaxAuthTries.*/MaxAuthTries 3/' /etc/ssh/sshd_config #---> Set max auth tries
+sudo sed -i 's/^#*MaxSessions.*/MaxSessions 10/' /etc/ssh/sshd_config #---> Set max sessions
+sudo sed -i 's/^#*ClientAliveInterval.*/ClientAliveInterval 300/' /etc/ssh/sshd_config #---> Set client alive interval
+sudo sed -i 's/^#*ClientAliveCountMax.*/ClientAliveCountMax 2/' /etc/ssh/sshd_config #---> Set client alive count max
+sudo sed -i 's/^#*LoginGraceTime.*/LoginGraceTime 60/' /etc/ssh/sshd_config #---> Set login grace time
+sudo sed -i 's/^#*AllowTcpForwarding.*/AllowTcpForwarding no/' /etc/ssh/sshd_config #---> Disable TCP forwarding
+sudo sed -i 's/^#*X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config #---> Disable X11 forwarding
+sudo sed -i 's/^#*AllowAgentForwarding.*/AllowAgentForwarding no/' /etc/ssh/sshd_config #---> Disable agent forwarding
+sudo sed -i 's/^#*PermitTunnel.*/PermitTunnel no/' /etc/ssh/sshd_config #---> Disable tunnel
+sudo sed -i 's/^#*GatewayPorts.*/GatewayPorts no/' /etc/ssh/sshd_config #---> Disable gateway ports
+sudo sed -i 's/^#*LogLevel.*/LogLevel VERBOSE/' /etc/ssh/sshd_config #---> Set log level
+sudo sed -i 's/^#*UseDNS.*/UseDNS no/' /etc/ssh/sshd_config #---> Disable DNS lookup
+sudo sed -i 's/^#*Compression.*/Compression delayed/' /etc/ssh/sshd_config #---> Set compression
+sudo sed -i 's/^#*TCPKeepAlive.*/TCPKeepAlive yes/' /etc/ssh/sshd_config #---> Enable TCP keep alive
+
+# Add settings that might not exist (append if not found)
+sudo grep -q "^MaxStartups" /etc/ssh/sshd_config || echo "MaxStartups 10:30:60" >> /etc/ssh/sshd_config
+sudo grep -q "^AuthenticationMethods" /etc/ssh/sshd_config || echo "AuthenticationMethods publickey" >> /etc/ssh/sshd_config
+
+# Add crypto settings (these are usually not in default config)
+sudo grep -q "^Ciphers" /etc/ssh/sshd_config || echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr" >> /etc/ssh/sshd_config
+sudo grep -q "^MACs" /etc/ssh/sshd_config || echo "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com" >> /etc/ssh/sshd_config
+sudo grep -q "^KexAlgorithms" /etc/ssh/sshd_config || echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512" >> /etc/ssh/sshd_config
+
+# Test configuration and restart if valid
+if sudo sshd -t; then
+    echo "SSH configuration valid, restarting service..."
+    sudo systemctl restart sshd
+    echo "SSH daemon restarted successfully"
+else
+    echo "SSH configuration test failed, restoring backup..."
+    if sudo cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config; then
+        info "Restored orginal SSHD config file. Exiting script..."
+        exit 1
+    else
+        fatal "Failed to resture sshd_config! Exiting script..."
+fi
+
+
+
+
 #---> Restart sshd
 #---> Install Fail2Ban and enable service
 #---> Configure Fail2Ban
