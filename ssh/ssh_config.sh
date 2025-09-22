@@ -145,6 +145,14 @@ sudo grep -q "^Ciphers" /etc/ssh/sshd_config || echo "Ciphers chacha20-poly1305@
 sudo grep -q "^MACs" /etc/ssh/sshd_config || echo "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com" | sudo tee -a /etc/ssh/sshd_config > /dev/null
 sudo grep -q "^KexAlgorithms" /etc/ssh/sshd_config || echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512" | sudo tee -a /etc/ssh/sshd_config > /dev/null
 
+# Add current user to AllowUsers if line doesn't exist
+if ! sudo grep -q "^AllowUsers" /etc/ssh/sshd_config; then
+    echo "AllowUsers $USER" | sudo tee -a /etc/ssh/sshd_config
+    success "Added AllowUsers $USER to SSH configuration"
+else
+    info "AllowUsers already exists in configuration, no action necessary. Continuing..."
+fi
+
 # Test configuration and restart if valid
 if sudo sshd -t; then
     echo "SSH configuration valid, restarting service..."
