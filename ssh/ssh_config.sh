@@ -99,7 +99,7 @@ info "Importing GitHub SSH keys..."
 read -p "Enter your GitHub username: " gh_username </dev/tty
 info "Pulling SSH keys from GitHub as user $gh_username..."
 
-if output = $( ssh-import-id-gh $gh_username 2>&1 ); then #---> Captures output and displays as needed...
+if output=$( ssh-import-id-gh "$gh_username" 2>&1 ); then #---> Captures output and displays as needed...
     success "SSH keys pulled from GitHub! Onward!"
     debug "Output: $output"
 else
