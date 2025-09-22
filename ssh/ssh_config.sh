@@ -97,7 +97,20 @@ fi
 #---> Import keys as non root user!
 info "Importing GitHub SSH keys..."
 read -p "Enter your GitHub username: " gh_username </dev/tty
-info "Entered GitHub username: $gh_username"
+info "Pulling SSH keys from GitHub as user $gh_username..."
+
+if output = $( ssh-import-id-gh "$gh_username" 2>&1 ); then #---> Captures output and displays as needed...
+    success "SSH keys pulled from GitHub! Onward!"
+    debug "Output: $output"
+else
+    error "Command output: $output"
+    fatal "Unable to pull keys from GitHub. Did you enter the correct username? Exiting script..."
+fi
+
+
+
+
+
 
 #---> Backup ssh config
 #---> Configure SSH security
