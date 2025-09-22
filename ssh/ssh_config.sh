@@ -1,6 +1,12 @@
 #!/bin/bash
 
+<<comment
+Stuff to do:
+- Add command line argument for GitHub username
+- Add comment block for script function
+- Add verbose flag for outputting all commands?
 
+comment
 
 # Credits
 
