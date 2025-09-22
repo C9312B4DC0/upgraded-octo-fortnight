@@ -97,9 +97,10 @@ fi
 #---> Import keys as non root user!
 info "Importing GitHub SSH keys..."
 read -p "Enter your GitHub username: " gh_username
-info "Entered GitHub username: ${gh_username}"
+info "Entered GitHub username: $gh_username"
 
-
+read -p "Test: " foo
+echo "Output: $foo"
 
 #---> Backup ssh config
 #---> Configure SSH security
