@@ -105,13 +105,21 @@ info "Updating system packages before installing apps..."
 pkg_update #---> Update system
 success "System packages updated!"
 
-#---> Install PIP
+#---> Install PIP and ssh-import-id
 info "Installing python3-pip..."
 if ! command -v pip &> /dev/null; then
 	info "Installing Python PIP..."
 	pkg_install python3-pip || fatal "Unable to install PIP, exiting..." #---> Fatal message function exits program... probably shouldn't do that...
 else
 	success "PIP already installed, moving on!"
+    info "Installing ssh-import-id..."
+
+    if ! command -v ssh-import-id-gh &> /dev/null; then #---> Check for installed app
+        info "Installing ssh-import-id..."
+        if ! pip install ssh-import-id; then #---> Attempt to install app
+            fatal "Unable to install ssh-import-id. Exiting script..."
+        fi
+    fi
 fi
 
 #---> Import keys as non root user!
