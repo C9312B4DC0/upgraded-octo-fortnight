@@ -85,6 +85,19 @@ function set_packagemanager() {
 #######################################
 # Main Script Block ###################
 #######################################
+info "Gathering sudo for ssh config commands..."
+# Check if user can use sudo at all
+if ! sudo -l &>/dev/null; then
+    fatal "User does not have sudo privileges. Exiting script..."
+fi
+
+# Prompt for password if needed
+if ! sudo -v; then
+    fatal "Unable to acquire sudo credentials. Exiting script..."
+fi
+
+success "Sudo acquired successfully... Moving on!"
+
 info "Determining package manager for OS..."
 set_packagemanager #---> Determine and set package manager
 
