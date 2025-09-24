@@ -118,7 +118,7 @@ fi
 info "Installing ssh-import-id..."
 if ! command -v ssh-import-id-gh &> /dev/null; then
     info "Installing ssh-import-id..."
-    if ! sudo pip install ssh-import-id; then
+    if ! pip install ssh-import-id; then
         fatal "Unable to install ssh-import-id. Exiting script..."
     fi
     success "ssh-import-id installed successfully!"
