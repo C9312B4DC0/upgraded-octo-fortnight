@@ -1,11 +1,18 @@
 #!/bin/bash
+<< comment
+██╗███████╗███████╗███╗   ██╗███████╗ ██████╗ ███████╗████████╗
+██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔═══██╗██╔════╝╚══██╔══╝
+██║███████╗█████╗  ██╔██╗ ██║███████╗██║   ██║█████╗     ██║
+██║╚════██║██╔══╝  ██║╚██╗██║╚════██║██║   ██║██╔══╝     ██║
+██║███████║███████╗██║ ╚████║███████║╚██████╔╝██║        ██║
+╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝        ╚═╝
 
-<<comment
 Stuff to do:
-- acquire sudo at beginning of script
 - Add command line argument for GitHub username
 - Add comment block for script function
 - Add verbose flag for outputting all commands?
+- Add communication before and after script
+- Ensure comments are well thought out
 
 comment
 
