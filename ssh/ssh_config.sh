@@ -1,11 +1,19 @@
 #!/bin/bash
 
 <<comment
+██╗███████╗███████╗███╗   ██╗███████╗ ██████╗ ███████╗████████╗
+██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔═══██╗██╔════╝╚══██╔══╝
+██║███████╗█████╗  ██╔██╗ ██║███████╗██║   ██║█████╗     ██║
+██║╚════██║██╔══╝  ██║╚██╗██║╚════██║██║   ██║██╔══╝     ██║
+██║███████║███████╗██║ ╚████║███████║╚██████╔╝██║        ██║
+╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝        ╚═╝
+
 Stuff to do:
-- acquire sudo at beginning of script
 - Add command line argument for GitHub username
 - Add comment block for script function
 - Add verbose flag for outputting all commands?
+- Add communication before and after script
+- Ensure comments are well thought out
 
 comment
 
@@ -18,7 +26,6 @@ comment
 #######################################
 # Variables ###########################
 #######################################
-
 #---> Text colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -43,9 +50,16 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 debug() { [[ -n "${DEBUG:-}" ]] && echo -e "${PURPLE}[DEBUG]${NC} $*" >&2; }
 fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} $*" >&2; exit 1; }
 
+#---> Help function for script usage
+usage() {
+    echo "Usage: $0 [-u|--ghusername GITHUB_USERNAME]"
+    echo "Options:"
+    echo "  -u, --ghusername    Set GitHub username"
+    echo "  -h, --help          Display this help message"
+}
 
 #---> Determine package manager for install
-function set_packagemanager() {
+set_packagemanager() {
     if command -v apt &> /dev/null; then
 		success "Package manager is apt."
         pkg_install() { sudo apt install -y "$@"; }
@@ -78,6 +92,19 @@ function set_packagemanager() {
 		fatal "No supported package manager found! Exiting script!"
 		exit 1
 	fi
+}
+
+#---> Set GitHub username from argument or input prompt
+set_ghusername() {
+    if [ -z "$GHUSERNAME" ]; then
+        read -p "Enter your GitHub username: " GH_USERNAME
+        # Optional: Add validation
+        if [ -z "$GHUSERNAME" ]; then
+            echo "Error: GitHub username is required"
+            exit 1
+        fi
+    fi
+    echo "GitHub username: $GHUSERNAME"
 }
 
 
@@ -140,10 +167,12 @@ else
     fatal "Unable to pull keys from GitHub. Did you enter the correct username? Exiting script..."
 fi
 
+
 #---> Backup SSH config
 info "Backing up original SSHD config (/etc/ssh/sshd_config)"
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup || fatal "Failed to backup SSH config. Exiting script..."
 success "Successfully backed up sshd_config! Backup filename: sshd_config.backup"
+
 
 #---> Configure SSH security
 info "Modifying SSHD config..."
