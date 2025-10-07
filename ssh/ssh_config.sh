@@ -41,14 +41,14 @@ NC='\033[0m' # No Color
 #######################################
 # Functions ###########################
 #######################################
-#---> Colored message functions
-info() { echo -e "${BLUE}[INFO]${NC} $*"; }
-input() { echo -e "${CYAN}[INPUT]${NC} $*"; }
-success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
-warning() { echo -e "${YELLOW}[WARNING]${NC} $*" >&2; }
-error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
-debug() { [[ -n "${DEBUG:-}" ]] && echo -e "${PURPLE}[DEBUG]${NC} $*" >&2; }
-fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} $*" >&2; exit 1; }
+#---> Colored coded message functions with timestamps
+info() { echo -e "${BLUE}[INFO]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+input() { echo -e "${CYAN}[INPUT]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+warning() { echo -e "${YELLOW}[WARNING]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2; }
+error() { echo -e "${RED}[ERROR]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2; }
+debug() { [[ -n "${DEBUG:-}" ]] && echo -e "${PURPLE}[DEBUG]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2; }
+fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2; exit 1; }
 
 #---> Help function for script usage
 usage() {
@@ -94,17 +94,33 @@ set_packagemanager() {
 	fi
 }
 
+get_sudo () {
+    info "Gathering sudo for ssh config commands..."
+
+    #---> Can you even sudo?
+    if ! sudo -l &>/dev/null; then
+        fatal "User does not have sudo privileges. Exiting script..."
+    fi
+
+    #---> Prompt for password if sudo is possible
+    if ! sudo -v; then
+        fatal "Unable to acquire sudo credentials. Exiting script..."
+    fi
+
+    success "Sudo acquired successfully... Moving on!"
+}
+
 #---> Set GitHub username from argument or input prompt
-set_ghusername() {
+get_ghusername() {
     if [ -z "$GHUSERNAME" ]; then
-        read -p "Enter your GitHub username: " GH_USERNAME
+        read -p "Enter your GitHub username: " GHUSERNAME
         # Optional: Add validation
         if [ -z "$GHUSERNAME" ]; then
-            echo "Error: GitHub username is required"
-            exit 1
+            fatal "Github username required... "
         fi
     fi
-    echo "GitHub username: $GHUSERNAME"
+
+    success "GitHub username successfully set!"
 }
 
 
@@ -112,18 +128,13 @@ set_ghusername() {
 #######################################
 # Main Script Block ###################
 #######################################
-info "Gathering sudo for ssh config commands..."
-# Check if user can use sudo at all
-if ! sudo -l &>/dev/null; then
-    fatal "User does not have sudo privileges. Exiting script..."
-fi
 
-# Prompt for password if needed
-if ! sudo -v; then
-    fatal "Unable to acquire sudo credentials. Exiting script..."
-fi
+#---> Acquire sudo for needed escalations
+get_sudo
 
-success "Sudo acquired successfully... Moving on!"
+#---> Get github username if not already declared
+get_ghusername
+
 
 info "Determining package manager for OS..."
 set_packagemanager #---> Determine and set package manager
@@ -156,10 +167,10 @@ fi
 
 #---> Import keys as non root user!
 info "Importing GitHub SSH keys..."
-read -p "Enter your GitHub username: " gh_username </dev/tty
-info "Pulling SSH keys from GitHub as user $gh_username..."
+read -p "Enter your GitHub username: " GHUSERNAME </dev/tty
+info "Pulling SSH keys from GitHub as user $GHUSERNAME..."
 
-if output=$( ssh-import-id-gh "$gh_username" 2>&1 ); then #---> Captures output and displays as needed...
+if output=$( ssh-import-id-gh "$GHUSERNAME" 2>&1 ); then #---> Captures output and displays as needed...
     success "SSH keys pulled from GitHub! Onward!"
     debug "Output: $output"
 else
