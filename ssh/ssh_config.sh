@@ -8,20 +8,26 @@
 ██║███████║███████╗██║ ╚████║███████║╚██████╔╝██║        ██║
 ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝        ╚═╝
 
-Stuff to do:
-- Add command line argument for GitHub username
-- Add comment block for script function
-- Add verbose flag for outputting all commands?
-- Add communication before and after script
-- Ensure comments are well thought out
+SSH Security Hardening Script
+This script automates SSH security configuration by:
+1. Installing required tools (ssh-import-id)
+2. Importing SSH keys from GitHub
+3. Hardening SSH daemon configuration
+4. Setting up Fail2Ban for brute force protection
+
+Features:
+- Optional GitHub username via command line (-u flag)
+- Interactive prompts for missing information
+- Comprehensive SSH security settings
+- Backup and validation of configuration changes
+
+Usage: ./script.sh [-u GITHUB_USERNAME] [-h]
 
 comment
 
 # Credits
-
-#---> SOME EXPLAINER STUFF
-# Note: I used some Claude Opus 4 to explain some of my options and what they do and to help better understand how to best lay out the script.
-
+# SSH security hardening script with GitHub key integration
+# Uses getopts for command-line argument parsing
 
 #######################################
 # Variables ###########################
@@ -36,7 +42,8 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
-
+# Global variable for GitHub username
+GHUSERNAME=""
 
 #######################################
 # Functions ###########################
@@ -52,123 +59,194 @@ fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" 
 
 #---> Help function for script usage
 usage() {
-    echo "Usage: $0 [-u|--ghusername GITHUB_USERNAME]"
+    echo "Usage: $0 [-u GITHUB_USERNAME] [-h]"
     echo "Options:"
-    echo "  -u, --ghusername    Set GitHub username"
-    echo "  -h, --help          Display this help message"
+    echo "  -u GITHUB_USERNAME    Set GitHub username for SSH key import"
+    echo "  -h, --help            Display this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 -u mygithubuser    # Use specified GitHub username"
+    echo "  $0                    # Prompt for GitHub username interactively"
+}
+
+#---> Parse command line arguments
+parse_arguments() {
+    while getopts ":u:h-:" opt; do
+        case $opt in
+            u)
+                GHUSERNAME="$OPTARG"
+                success "GitHub username set from command line: $GHUSERNAME"
+                ;;
+            h)
+                usage
+                exit 0
+                ;;
+            -)
+                case "${OPTARG}" in
+                    help)
+                        usage
+                        exit 0
+                        ;;
+                    ghusername)
+                        # Handle --ghusername (long option)
+                        GHUSERNAME="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                        if [ -z "$GHUSERNAME" ]; then
+                            fatal "Option --$OPTARG requires an argument"
+                        fi
+                        success "GitHub username set from command line: $GHUSERNAME"
+                        ;;
+                    *)
+                        fatal "Unknown option --$OPTARG"
+                        ;;
+                esac
+                ;;
+            \?)
+                fatal "Invalid option: -$OPTARG"
+                ;;
+            :)
+                fatal "Option -$OPTARG requires an argument"
+                ;;
+        esac
+    done
+}
+
+#---> Set GitHub username from argument or input prompt
+get_ghusername() {
+    # If username is still empty after parsing arguments, prompt for it
+    if [ -z "$GHUSERNAME" ]; then
+        input "Enter your GitHub username: "
+        read -r GHUSERNAME
+        # Validate input
+        if [ -z "$GHUSERNAME" ]; then
+            fatal "GitHub username is required"
+        fi
+    fi
+
+    # Additional validation (optional)
+    if [[ "$GHUSERNAME" =~ [[:space:]] ]]; then
+        fatal "GitHub username cannot contain spaces"
+    fi
+
+    success "GitHub username set to: $GHUSERNAME"
+}
+
+#---> Import SSH keys from GitHub
+import_github_keys() {
+    info "Importing GitHub SSH keys for user: $GHUSERNAME"
+
+    if output=$(ssh-import-id-gh "$GHUSERNAME" 2>&1); then
+        success "SSH keys imported successfully from GitHub!"
+        debug "Import output: $output"
+    else
+        error "Command output: $output"
+        fatal "Failed to import SSH keys from GitHub. Please verify the username and try again."
+    fi
 }
 
 #---> Determine package manager for install
 set_packagemanager() {
     if command -v apt &> /dev/null; then
-		success "Package manager is apt."
+        success "Package manager is apt."
         pkg_install() { sudo apt install -y "$@"; }
         pkg_update()  { sudo apt update -y; }
         pkg_remove()  { sudo apt remove -y "$@"; }
         pkg_search()  { apt search "$@"; }
 
     elif command -v dnf &> /dev/null; then
-		success "Package manager is dnf."
+        success "Package manager is dnf."
         pkg_install() { sudo dnf install -y "$@"; }
         pkg_update()  { sudo dnf update -y; }
         pkg_remove()  { sudo dnf remove -y "$@"; }
         pkg_search()  { dnf search "$@"; }
 
-	elif command -v yum &> /dev/null; then
-		success "Package manager is yum."
+    elif command -v yum &> /dev/null; then
+        success "Package manager is yum."
         pkg_install() { sudo yum -y install "$@"; }
         pkg_update()  { sudo yum -y update; }
         pkg_remove()  { sudo yum -y remove "$@"; }
         pkg_search()  { yum info "$@"; }
 
     elif command -v pacman &> /dev/null; then
-		success "Package manager is pacman."
+        success "Package manager is pacman."
         pkg_install() { sudo pacman -S --noconfirm "$@"; }
         pkg_update()  { sudo pacman -Sy; }
         pkg_remove()  { sudo pacman -R --noconfirm "$@"; }
         pkg_search()  { pacman -Ss "$@"; }
 
-	else
-		fatal "No supported package manager found! Exiting script!"
-		exit 1
-	fi
+    else
+        fatal "No supported package manager found!"
+    fi
 }
 
-get_sudo () {
-    info "Gathering sudo for ssh config commands..."
+get_sudo() {
+    info "Acquiring sudo privileges for SSH configuration..."
 
-    #---> Can you even sudo?
     if ! sudo -l &>/dev/null; then
-        fatal "User does not have sudo privileges. Exiting script..."
+        fatal "User does not have sudo privileges."
     fi
 
-    #---> Prompt for password if sudo is possible
     if ! sudo -v; then
-        fatal "Unable to acquire sudo credentials. Exiting script..."
+        fatal "Unable to acquire sudo credentials."
     fi
 
-    success "Sudo acquired successfully... Moving on!"
+    success "Sudo privileges acquired successfully."
 }
-
-#---> Set GitHub username from argument or input prompt
-get_ghusername() {
-    if [ -z "$GHUSERNAME" ]; then
-        read -p "Enter your GitHub username: " GHUSERNAME
-        # Optional: Add validation
-        if [ -z "$GHUSERNAME" ]; then
-            fatal "Github username required... "
-        fi
-    fi
-
-    success "GitHub username successfully set!"
-}
-
-
 
 #######################################
 # Main Script Block ###################
 #######################################
 
-#---> Acquire sudo for needed escalations
-get_sudo
+#---> Parse command line arguments first
+parse_arguments "$@"
 
-#---> Get github username if not already declared
+#---> Welcome message
+info "Starting SSH Security Hardening Script"
+info "This script will configure SSH security and import GitHub SSH keys"
+
+#---> Get GitHub username (from args or prompt)
 get_ghusername
 
+#---> Acquire sudo privileges
+get_sudo
 
-info "Determining package manager for OS..."
-set_packagemanager #---> Determine and set package manager
+#---> Determine package manager
+info "Determining system package manager..."
+set_packagemanager
 
-info "Updating system packages before installing apps..."
-pkg_update #---> Update system
-success "System packages updated!"
+#---> Update system packages
+info "Updating system packages..."
+pkg_update
+success "System packages updated successfully"
 
-#---> Install PIP
-info "Installing python3-pip..."
+#---> Install PIP (if needed)
+info "Checking for Python PIP..."
 if ! command -v pip &> /dev/null; then
     info "Installing Python PIP..."
-    pkg_install python3-pip || fatal "Unable to install PIP, exiting..."
+    pkg_install python3-pip || fatal "Failed to install Python PIP"
+    success "Python PIP installed successfully"
 else
-    success "PIP already installed!"
+    success "PIP already installed"
 fi
 
 #---> Install ssh-import-id
-info "Installing ssh-import-id..."
+info "Checking for ssh-import-id..."
 if ! command -v ssh-import-id-gh &> /dev/null; then
     info "Installing ssh-import-id..."
     if ! pip install ssh-import-id; then
-        fatal "Unable to install ssh-import-id. Exiting script..."
+        fatal "Failed to install ssh-import-id"
     fi
-    success "ssh-import-id installed successfully!"
+    success "ssh-import-id installed successfully"
 else
-    success "ssh-import-id already installed!"
+    success "ssh-import-id already installed"
 fi
 
+#---> Import GitHub SSH keys
+import_github_keys
 
 #---> Import keys as non root user!
 info "Importing GitHub SSH keys..."
 read -p "Enter your GitHub username: " GHUSERNAME </dev/tty
-info "Pulling SSH keys from GitHub as user $GHUSERNAME..."
+info "Pulling SSH keys from GitHub for user $GHUSERNAME..."
 
 if output=$( ssh-import-id-gh "$GHUSERNAME" 2>&1 ); then #---> Captures output and displays as needed...
     success "SSH keys pulled from GitHub! Onward!"
