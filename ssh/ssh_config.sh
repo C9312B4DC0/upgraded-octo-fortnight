@@ -13,7 +13,6 @@ This script automates SSH security configuration by:
 1. Installing required tools (ssh-import-id)
 2. Importing SSH keys from GitHub
 3. Hardening SSH daemon configuration
-4. Setting up Fail2Ban for brute force protection
 
 Features:
 - Optional GitHub username via command line (-u flag)
@@ -61,8 +60,8 @@ fatal() { echo -e "${RED}${BOLD}[FATAL]${NC} [$(date '+%Y-%m-%d %H:%M:%S')] $*" 
 usage() {
     echo "Usage: $0 [-u GITHUB_USERNAME] [-h]"
     echo "Options:"
-    echo "  -u GITHUB_USERNAME    Set GitHub username for SSH key import"
-    echo "  -h, --help            Display this help message"
+    echo "  -u, --ghusername GITHUB_USERNAME    Set GitHub username for SSH key import"
+    echo "  -h, --help            				Display this help message"
     echo ""
     echo "Examples:"
     echo "  $0 -u mygithubuser    # Use specified GitHub username"
@@ -114,20 +113,14 @@ parse_arguments() {
 get_ghusername() {
     # If username is still empty after parsing arguments, prompt for it
     if [ -z "$GHUSERNAME" ]; then
-        input "Enter your GitHub username: "
-        read -r GHUSERNAME
+        read -pr "Enter your GitHub username: " GHUSERNAME
         # Validate input
         if [ -z "$GHUSERNAME" ]; then
-            fatal "GitHub username is required"
+            fatal "GitHub username is required! Exiting script..."
         fi
     fi
 
-    # Additional validation (optional)
-    if [[ "$GHUSERNAME" =~ [[:space:]] ]]; then
-        fatal "GitHub username cannot contain spaces"
-    fi
-
-    success "GitHub username set to: $GHUSERNAME"
+    success "GitHub username entered: $GHUSERNAME"
 }
 
 #---> Import SSH keys from GitHub
