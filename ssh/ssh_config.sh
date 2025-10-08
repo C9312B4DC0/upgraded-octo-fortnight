@@ -240,21 +240,9 @@ else
     success "ssh-import-id already installed"
 fi
 
-#---> Import GitHub SSH keys
-import_github_keys
-
-#---> Import keys as non root user!
+#---> Import user SSH keys from GitHub
 info "Importing GitHub SSH keys..."
-read -p "Enter your GitHub username: " GHUSERNAME </dev/tty
-info "Pulling SSH keys from GitHub for user $GHUSERNAME..."
-
-if output=$( ssh-import-id-gh "$GHUSERNAME" 2>&1 ); then #---> Captures output and displays as needed...
-    success "SSH keys pulled from GitHub! Onward!"
-    debug "Output: $output"
-else
-    error "Command output: $output"
-    fatal "Unable to pull keys from GitHub. Did you enter the correct username? Exiting script..."
-fi
+import_github_keys
 
 
 #---> Backup SSH config
@@ -306,23 +294,16 @@ fi
 
 # Test configuration and restart if valid
 if sudo sshd -t; then
-    echo "SSH configuration valid, restarting service..."
+    info "SSH configuration valid, restarting service..."
     sudo systemctl restart sshd
-    echo "SSH daemon restarted successfully"
+    success "SSH daemon restarted successfully"
 else
-    echo "SSH configuration test failed, restoring backup..."
+    error "SSH configuration test failed, restoring backup..."
     if sudo cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config; then
-        info "Restored orginal SSHD config file. Exiting script..."
-        exit 1
+        success "Restored orginal SSHD config file!"
+		fatal "Exiting script..."
     else
-        fatal "Failed to resture sshd_config! Exiting script..."
+        fatal "Failed to restore sshd_config! Exiting script..."
     fi
 fi
 
-
-
-
-#---> Restart sshd
-#---> Install Fail2Ban and enable service
-#---> Configure Fail2Ban
-#---> Test access
