@@ -111,7 +111,7 @@ parse_arguments() {
 get_ghusername() {
     # If username is still empty after parsing arguments, prompt for it
     if [ -z "$GHUSERNAME" ]; then
-        read -p -r "Enter your GitHub username: " GHUSERNAME
+        read -p "Enter your GitHub username: " -r GHUSERNAME
         # Validate input
         if [ -z "$GHUSERNAME" ]; then
             fatal "GitHub username is required! Exiting script..."
