@@ -24,9 +24,7 @@ Usage: ./script.sh [-u GITHUB_USERNAME] [-h]
 
 comment
 
-# Credits
-# SSH security hardening script with GitHub key integration
-# Uses getopts for command-line argument parsing
+
 
 #######################################
 # Variables ###########################
@@ -113,7 +111,7 @@ parse_arguments() {
 get_ghusername() {
     # If username is still empty after parsing arguments, prompt for it
     if [ -z "$GHUSERNAME" ]; then
-        read -pr "Enter your GitHub username: " GHUSERNAME
+        read -p -r "Enter your GitHub username: " GHUSERNAME
         # Validate input
         if [ -z "$GHUSERNAME" ]; then
             fatal "GitHub username is required! Exiting script..."
