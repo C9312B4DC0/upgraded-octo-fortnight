@@ -273,7 +273,7 @@ sudo sed -i 's/^#*MaxSessions.*/MaxSessions 10/' /etc/ssh/sshd_config #---> Set 
 sudo sed -i 's/^#*ClientAliveInterval.*/ClientAliveInterval 300/' /etc/ssh/sshd_config #---> Set client alive interval
 sudo sed -i 's/^#*ClientAliveCountMax.*/ClientAliveCountMax 2/' /etc/ssh/sshd_config #---> Set client alive count max
 sudo sed -i 's/^#*LoginGraceTime.*/LoginGraceTime 60/' /etc/ssh/sshd_config #---> Set login grace time
-sudo sed -i 's/^#*AllowTcpForwarding.*/AllowTcpForwarding no/' /etc/ssh/sshd_config #---> Disable TCP forwarding
+sudo sed -i 's/^#*AllowTcpForwarding.*/AllowTcpForwarding yes/' /etc/ssh/sshd_config #---> Enable TCP forwarding for IDE access
 sudo sed -i 's/^#*X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config #---> Disable X11 forwarding
 sudo sed -i 's/^#*AllowAgentForwarding.*/AllowAgentForwarding no/' /etc/ssh/sshd_config #---> Disable agent forwarding
 sudo sed -i 's/^#*PermitTunnel.*/PermitTunnel no/' /etc/ssh/sshd_config #---> Disable tunnel
