@@ -13,17 +13,6 @@
 #
 #
 #
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
 
 SSH Security Hardening Script
 This script automates SSH security configuration by:
