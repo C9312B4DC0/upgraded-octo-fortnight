@@ -1,2 +1,2 @@
-# upgraded-octo-fortnight
+# linux stuff
 Configs, scripts, and stuff.
